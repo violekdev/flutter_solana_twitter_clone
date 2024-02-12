@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.solana.twitter.clone.flutter_solana_twitter_clone">
+    package="com.example.flutter_solana_twitter_clone">
    <application
         android:label="${appName}"
         android:name="${applicationName}"
