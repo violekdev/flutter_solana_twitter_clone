@@ -55,7 +55,7 @@ class _SolanaTwitterHomeViewState extends State<SolanaTwitterHomeView> {
       final result = await client.authorize(
         identityUri: Uri.parse('https://solana-twitter-clone.apmink.com'),
         iconUri: Uri.parse('favicon.ico'),
-        identityName: 'Solana Twitter Clone',
+        identityName: 'Flutter Solana Twitter Clone',
         cluster: 'devnet',
       );
 
@@ -75,27 +75,8 @@ class _SolanaTwitterHomeViewState extends State<SolanaTwitterHomeView> {
   }
 
   Future<void> deauthorizeUser() async {
-    /// step 1
-    // final localScenario = await LocalAssociationScenario.create();
     try {
-      /// step 2
-      // localScenario.startActivityForResult(null).ignore();
-
-      /// step 3
-      // client = await localScenario.start();
-
-      /// step 4
-      // final result = await client.authorize(
-      //   identityUri: Uri.parse('https://solana.apmink.com'),
-      //   iconUri: Uri.parse('favicon.ico'),
-      //   identityName: 'Solana App by Apmink',
-      //   cluster: 'devnet',
-      // );
-
       await client.deauthorize(authToken: _result!.authToken);
-
-      /// step 5
-      // await localScenario.close();
 
       setState(() {
         _result = null;
@@ -200,7 +181,7 @@ class _SolanaTwitterHomeViewState extends State<SolanaTwitterHomeView> {
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
-          title: const Text('Solana Flutter Example'),
+          title: const Text('Flutter Solana Twitter Clone'),
           centerTitle: true,
           actions: [
             ElevatedButton(
@@ -262,11 +243,6 @@ class _SolanaTwitterHomeViewState extends State<SolanaTwitterHomeView> {
                   onPressed: getTweetsFromWorkspace,
                   child: const Text('Get Tweets'),
                 ),
-                // if (_result != null) ElevatedButton(
-                //   onPressed:() => workspace.getTweet(solanaClient, _result!),
-                //   child: const Text('Get Tweet'),
-                // ),
-                // MintNFTView(result: _result, solanaClient: solanaClient),
               ],
             ),
           ],
@@ -275,97 +251,3 @@ class _SolanaTwitterHomeViewState extends State<SolanaTwitterHomeView> {
     );
   }
 }
-
-// class GetMintDataFormWidget extends StatefulWidget {
-//   const GetMintDataFormWidget({
-//     required this.client,
-//     required this.result,
-//     required this.solanaClient,
-//     super.key,
-//   });
-
-//   final AuthorizationResult result;
-//   final MobileWalletAdapterClient client;
-//   final SolanaClient solanaClient;
-
-//   @override
-//   State<GetMintDataFormWidget> createState() => _GetMintDataFormWidgetState();
-// }
-
-// class _GetMintDataFormWidgetState extends State<GetMintDataFormWidget> {
-//   final int lamportsPerSol = 1000000000;
-//   Uint8List pickedImageFile = Uint8List(0);
-
-//   String mintData = '';
-
-//   TextEditingController addressController = TextEditingController();
-
-//   final _formKey = GlobalKey<FormState>();
-
-//   @override
-//   void dispose() {
-//     addressController.dispose();
-//     super.dispose();
-//   }
-
-//   void onSubmit() {
-//     if (_formKey.currentState!.validate()) {
-//       getMintData();
-//     }
-//   }
-
-//   Future<void> getMintData() async {
-//     try {
-//       // final localScenario = await LocalAssociationScenario.create();
-//       // localScenario.startActivityForResult(null).ignore();
-//       // final client = await localScenario.start();
-//       // final reAuth = await client.reauthorize(
-//       //   identityUri: Uri.parse('https://solana.apmink.com'),
-//       //   iconUri: Uri.parse('favicon.ico'),
-//       //   identityName: 'Solana App by Apmink',
-//       //   authToken: widget.result.authToken,
-//       // );
-
-//       debugPrint(addressController.text);
-//       // if (reAuth != null) {
-//       final result = await widget.solanaClient.rpcClient.(
-//         address: Ed25519HDPublicKey.fromBase58(addressController.text),
-//       );
-
-//       setState(() {
-//         mintData = result.toString();
-//       });
-
-//       // await localScenario.close();
-
-//       debugPrint(result.toString());
-//       // }
-//     } catch (e) {
-//       debugPrint(e.toString());
-//     }
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     // final screenSize = MediaQuery.of(context).size;
-//     return Center(
-//       child: Form(
-//         key: _formKey,
-//         child: Column(
-//           mainAxisAlignment: MainAxisAlignment.center,
-//           children: [
-//             TextField(
-//               decoration: const InputDecoration(hintText: 'Mint Address'),
-//               controller: addressController,
-//             ),
-//             ElevatedButton(
-//               onPressed: onSubmit,
-//               child: const Text('Get Data'),
-//             ),
-//             if (mintData.isNotEmpty) Text(mintData),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-// }
