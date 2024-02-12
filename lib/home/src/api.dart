@@ -6,7 +6,6 @@ import 'package:flutter_solana_twitter_clone/home/src/model/tweet.dart';
 import 'package:solana/dto.dart';
 import 'package:solana/encoder.dart';
 import 'package:solana/solana.dart';
-import 'package:solana_mobile_client/solana_mobile_client.dart';
 
 class Workspace {
   late List<ProgramAccount> programList;
@@ -14,7 +13,8 @@ class Workspace {
   final programIdPublicKey = Ed25519HDPublicKey((solanaTweetJSON.metadata['address'] as String).codeUnits);
   final systemProgramId = Ed25519HDPublicKey.fromBase58(SystemProgram.programId);
 
-  Future<void> workspace(SolanaClient solanaClient, AuthorizationResult result) async {
+  Future<List<TweetModel>> getTweet(SolanaClient solanaClient) async {
+    final tweets = <TweetModel>[];
     try {
       programList = await solanaClient.rpcClient.getProgramAccounts(
         programIdPublicKeyStr,
@@ -23,28 +23,30 @@ class Workspace {
       );
       debugPrint(programList.toString());
 
-      final account = programList[9];
-      debugPrint(account.pubkey);
+      for (var i = 0; i < programList.length; i++) {
+        final account = programList[i];
+        debugPrint(account.pubkey);
 
-      final result = await solanaClient.rpcClient
-          .getAccountInfo(
-            account.pubkey,
-            commitment: Commitment.confirmed,
-            encoding: Encoding.jsonParsed,
-          )
-          .value;
+        final result = await solanaClient.rpcClient
+            .getAccountInfo(
+              account.pubkey,
+              commitment: Commitment.confirmed,
+              encoding: Encoding.jsonParsed,
+            )
+            .value;
 
-      final bytes = (result!.data! as BinaryAccountData).data;
-      final decodedTweet = TweetModel.fromBorsh(bytes as Uint8List);
-      debugPrint(decodedTweet.author.toString());
-      debugPrint(decodedTweet.content);
+        final bytes = (result!.data! as BinaryAccountData).data;
+        final decodedTweet = TweetModel.fromBorsh(bytes as Uint8List);
+        debugPrint(decodedTweet.author.toString());
+        debugPrint(decodedTweet.content);
+
+        tweets.add(decodedTweet);
+        // ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+      }
     } catch (e) {
       debugPrint(e.toString());
     }
-  }
-
-  Future<void> getTweet(SolanaClient solanaClient, AuthorizationResult result) async {
-    await workspace(solanaClient, result);
+    return tweets;
   }
 }
 

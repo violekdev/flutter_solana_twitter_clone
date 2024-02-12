@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_solana_twitter_clone/home/src/api.dart';
+import 'package:flutter_solana_twitter_clone/home/src/model/tweet.dart';
 import 'package:solana/base58.dart';
 import 'package:solana/solana.dart';
 import 'package:solana_mobile_client/solana_mobile_client.dart';
@@ -16,6 +17,8 @@ class SolanaTwitterHomeView extends StatefulWidget {
 class _SolanaTwitterHomeViewState extends State<SolanaTwitterHomeView> {
   late AuthorizationResult? _result;
   int _accountBalance = 0;
+  String userPubKey = '';
+  List<TweetModel> tweetList = [];
   late MobileWalletAdapterClient client;
   final solanaClient = SolanaClient(
     rpcUrl: Uri.parse('https://api.devnet.solana.com'),
@@ -56,13 +59,11 @@ class _SolanaTwitterHomeViewState extends State<SolanaTwitterHomeView> {
         cluster: 'devnet',
       );
 
-      /// step 5
-      // await localScenario.close();
-
       setState(() {
         _result = result;
       });
-
+      pubKey();
+      await getTweetsFromWorkspace();
       await getSOLBalance();
     } on Exception catch (e) {
       debugPrint(e.toString());
@@ -82,6 +83,10 @@ class _SolanaTwitterHomeViewState extends State<SolanaTwitterHomeView> {
     } on Exception catch (e) {
       debugPrint(e.toString());
     }
+  }
+
+  void pubKey() {
+    userPubKey = (_result != null) ? '${base58encode(_result!.publicKey).substring(0, 8)}...' : '';
   }
 
   Future<void> requestAirDrop() async {
@@ -117,7 +122,10 @@ class _SolanaTwitterHomeViewState extends State<SolanaTwitterHomeView> {
 
   Future<void> getTweetsFromWorkspace() async {
     try {
-      await workspace.getTweet(solanaClient, _result!);
+      final list = await workspace.getTweet(solanaClient);
+      setState(() {
+        tweetList = list;
+      });
     } catch (e) {
       debugPrint('$e');
     }
@@ -138,58 +146,54 @@ class _SolanaTwitterHomeViewState extends State<SolanaTwitterHomeView> {
             ),
           ],
         ),
-        body: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Table(
-                columnWidths: {0: FixedColumnWidth(screenSize.width * 0.3), 1: FixedColumnWidth(screenSize.width * 0.6)},
+        body: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Text(
+                userPubKey,
+                style: Theme.of(context).textTheme.headlineSmall,
+              ),
+              Text(
+                (_accountBalance / lamportsPerSol).toStringAsPrecision(8),
+                style: Theme.of(context).textTheme.headlineSmall,
+              ),
+              Wrap(
+                alignment: WrapAlignment.spaceEvenly,
+                spacing: screenSize.width * 0.02,
                 children: [
-                  TableRow(
-                    children: [
-                      const TableCell(child: Text('Public Key')),
-                      TableCell(child: Text((_result != null) ? base58encode(_result!.publicKey) : '')),
-                    ],
+                  ElevatedButton(
+                    onPressed: requestAirDrop,
+                    child: const Text('Request Airdrop'),
                   ),
-                  TableRow(
-                    children: [
-                      const TableCell(child: Text('Account Label')),
-                      TableCell(child: Text((_result != null) ? _result!.accountLabel! : '')),
-                    ],
+                  ElevatedButton(
+                    onPressed: getSOLBalance,
+                    child: const Text('Request Balance'),
                   ),
-                  TableRow(
-                    children: [
-                      const TableCell(child: Text('Sol Balance')),
-                      TableCell(
-                        child: Text(
-                          (_accountBalance / lamportsPerSol).toStringAsPrecision(8),
-                        ),
-                      ),
-                    ],
+                  ElevatedButton(
+                    onPressed: getTweetsFromWorkspace,
+                    child: const Text('Get Tweets'),
                   ),
                 ],
               ),
-            ),
-            Wrap(
-              alignment: WrapAlignment.spaceEvenly,
-              spacing: screenSize.width * 0.02,
-              children: [
-                ElevatedButton(
-                  onPressed: requestAirDrop,
-                  child: const Text('Request Airdrop'),
+              if (tweetList.isNotEmpty)
+                ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: tweetList.length,
+                  itemBuilder: (context, index) => Card(
+                    child: Column(
+                      children: [
+                        Text(tweetList[index].author.toBase58()),
+                        Text(tweetList[index].timestamp.toString()),
+                        Text(tweetList[index].topic),
+                        Text(tweetList[index].content),
+                      ],
+                    ),
+                  ),
                 ),
-                ElevatedButton(
-                  onPressed: getSOLBalance,
-                  child: const Text('Request Balance'),
-                ),
-                ElevatedButton(
-                  onPressed: getTweetsFromWorkspace,
-                  child: const Text('Get Tweets'),
-                ),
-              ],
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
