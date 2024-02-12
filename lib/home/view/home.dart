@@ -1,9 +1,6 @@
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_solana_twitter_clone/home/src/api.dart';
 import 'package:solana/base58.dart';
-import 'package:solana/encoder.dart';
 import 'package:solana/solana.dart';
 import 'package:solana_mobile_client/solana_mobile_client.dart';
 
@@ -53,7 +50,7 @@ class _SolanaTwitterHomeViewState extends State<SolanaTwitterHomeView> {
 
       /// step 4
       final result = await client.authorize(
-        identityUri: Uri.parse('https://solana-twitter-clone.apmink.com'),
+        identityUri: Uri.parse('https://solana-twitter-clone.example.com'),
         iconUri: Uri.parse('favicon.ico'),
         identityName: 'Flutter Solana Twitter Clone',
         cluster: 'devnet',
@@ -115,55 +112,6 @@ class _SolanaTwitterHomeViewState extends State<SolanaTwitterHomeView> {
       });
     } catch (e) {
       debugPrint('$e');
-    }
-  }
-
-  Future<void> generateAndSignTransaction() async {
-    final localScenario = await LocalAssociationScenario.create();
-    localScenario.startActivityForResult(null).ignore();
-    final client = await localScenario.start();
-    final reAuth = await client.reauthorize(
-      identityUri: Uri.parse('https://solana.apmink.com'),
-      iconUri: Uri.parse('favicon.ico'),
-      identityName: 'Solana App by Apmink',
-      authToken: _result!.authToken,
-    );
-
-    if (reAuth != null) {
-      /// create Memo Program Transaction
-      final instruction = MemoInstruction(
-        signers: [Ed25519HDPublicKey(_result!.publicKey.toList())],
-        memo: 'Example memo',
-      );
-
-      final signature = Signature(
-        List.filled(64, 0),
-        publicKey: Ed25519HDPublicKey(
-          _result!.publicKey.toList(),
-        ),
-      );
-
-      final blockhash = await solanaClient.rpcClient.getLatestBlockhash().then((it) => it.value.blockhash);
-
-      final txn = SignedTx(
-        signatures: [signature],
-        compiledMessage: Message.only(instruction).compile(
-          recentBlockhash: blockhash,
-          feePayer: Ed25519HDPublicKey(
-            _result!.publicKey.toList(),
-          ),
-        ),
-      );
-
-      final result = await client.signAndSendTransactions(
-        transactions: [Uint8List.fromList(txn.toByteArray().toList())],
-      );
-
-      await localScenario.close();
-
-      debugPrint(
-        'TRANSACTION SIGNATURE: https://solscan.io/tx/${base58encode(result.signatures[0])}?cluster=devnet',
-      );
     }
   }
 
@@ -234,10 +182,6 @@ class _SolanaTwitterHomeViewState extends State<SolanaTwitterHomeView> {
                 ElevatedButton(
                   onPressed: getSOLBalance,
                   child: const Text('Request Balance'),
-                ),
-                ElevatedButton(
-                  onPressed: generateAndSignTransaction,
-                  child: const Text('Generate and Sign Transactions'),
                 ),
                 ElevatedButton(
                   onPressed: getTweetsFromWorkspace,
